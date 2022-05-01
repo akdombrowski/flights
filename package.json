@@ -1,0 +1,35 @@
+{
+  "name": "flights",
+  "version": "0.0.1",
+  "description": "flights scraper",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akdombrowski/flights.git"
+  },
+  "keywords": [
+    "apify",
+    "nfl",
+    "draft",
+    "2022",
+    "prospects",
+    "players",
+    "college",
+    "ncaa"
+  ],
+  "author": "Anthony Dombrowski",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/akdombrowski/flights/issues"
+  },
+  "homepage": "https://github.com/akdombrowski/flights#readme",
+  "dependencies": {
+    "apify": "^2.2.1",
+    "firebase-admin": "^10.1.0",
+    "puppeteer": "^13.1.2"
+  }
+}
