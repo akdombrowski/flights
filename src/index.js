@@ -34,13 +34,13 @@ Apify.main(async () => {
         interceptedRequest.url().includes("/log?format=json&hasfast=true")
       )
     ) {
-      log.info("");
-      log.info("");
-      log.info("");
-      log.info("A request was made: \n" + interceptedRequest.url());
-      log.info("");
-      log.info("");
-      log.info("");
+      log.debug("");
+      log.debug("");
+      log.debug("");
+      log.debug("A request was made: \n" + interceptedRequest.url());
+      log.debug("");
+      log.debug("");
+      log.debug("");
     }
   };
 
@@ -71,9 +71,9 @@ Apify.main(async () => {
       launchOptions: launchOptions,
     };
 
-    log.info("");
-    log.info("Launching Puppeteer...");
-    log.info("");
+    log.debug("");
+    log.debug("Launching Puppeteer...");
+    log.debug("");
     // console.log("Launching Puppeteer...");
     const browser = await Apify.launchPuppeteer(launchContext);
 
@@ -82,7 +82,7 @@ Apify.main(async () => {
       // get existing tab/page (first item in the array)
       var [page] = await browser.pages();
 
-      log.info(`Opening page ${url}...`);
+      log.debug(`Opening page ${url}...`);
       const [goToURL] = await Promise.all([
         page.waitForNavigation({
           timeout: 60000,
@@ -90,20 +90,20 @@ Apify.main(async () => {
         }),
         page.goto(url, { timeout: 60000 }),
       ]);
-      // log.info("goToURL");
-      // log.info(goToURL);
-      // log.info("");
+      // log.debug("goToURL");
+      // log.debug(goToURL);
+      // log.debug("");
 
       // Get title of the page.
       const title = await page.title();
-      log.info(`Title of the page "${url}" is "${title}".`);
-      log.info("");
+      log.debug(`Title of the page "${url}" is "${title}".`);
+      log.debug("");
 
-      log.info("Waiting for page loading.");
-      log.info("");
+      log.debug("Waiting for page loading.");
+      log.debug("");
 
-      log.info("Finding input fields for beginning and ending locations.");
-      log.info("");
+      log.debug("Finding input fields for beginning and ending locations.");
+      log.debug("");
       const whereToAncestor = await page.$('[aria-placeholder="Where to?"]');
       const whereFromAncestor = await page.$(
         '[aria-placeholder="Where from?"]'
@@ -114,20 +114,20 @@ Apify.main(async () => {
       // start typing Austin
       // you'll get a dropdown of suggestions
       // click the austin, texas suggestion
-      log.info("WHERE FROM");
-      log.info("Type in the traveling from location.");
+      log.debug("WHERE FROM");
+      log.debug("Type in the traveling from location.");
       await whereFrom.focus();
       await whereFrom.click();
-      log.info("Deleting default value.");
+      log.debug("Deleting default value.");
       await whereFrom.press("Backspace");
       await whereFrom.press("Backspace");
       await whereFrom.press("Backspace");
       await whereFrom.press("Backspace");
       await whereFrom.press("Backspace");
       await whereFrom.press("Backspace");
-      log.info("Typing in location.");
+      log.debug("Typing in location.");
       await whereFrom.type("Austin", { delay: 00 });
-      log.info("Waiting for the right suggestion in the dropdown list.");
+      log.debug("Waiting for the right suggestion in the dropdown list.");
       let austinDropdownItem;
       try {
         austinDropdownItem = await page.waitForSelector(
@@ -135,8 +135,8 @@ Apify.main(async () => {
           { visible: true, timeout: 1000 }
         );
       } catch (error) {
-        log.info("Trying again.");
-        log.info(
+        log.debug("Trying again.");
+        log.debug(
           "Switch focus to where to input field briefly before switching back."
         );
         await whereTo.focus();
@@ -147,52 +147,52 @@ Apify.main(async () => {
           { visible: true, timeout: 1000 }
         );
       }
-      log.info("Click on the suggestion");
+      log.debug("Click on the suggestion");
       austinDropdownItem
         ? await austinDropdownItem.click()
         : log.error("oops austin isn't in dropdown suggetions");
       // await whereFrom.press("Enter");
-      log.info("");
+      log.debug("");
 
-      log.info("WHERE TO");
-      log.info("Focus on the 'where to' input field.");
+      log.debug("WHERE TO");
+      log.debug("Focus on the 'where to' input field.");
       const clickBox = await whereTo.focus();
-      log.info("Typing in travel destination.");
+      log.debug("Typing in travel destination.");
       await whereTo.type("Tokyo", { delay: 000 });
-      log.info("Waiting for the right suggestion in the drop down list.");
+      log.debug("Waiting for the right suggestion in the drop down list.");
       const tokyoDropdownItem = await page.waitForSelector(
         'li[aria-label="Tokyo, Japan"]',
         { visible: true, timeout: 1000 }
       );
-      log.info("Clicking suggestion.");
-      log.info("");
+      log.debug("Clicking suggestion.");
+      log.debug("");
       await tokyoDropdownItem.click();
       // await whereTo.press("Enter");
 
-      log.info("Taking screenshot of filled in input fields.");
-      log.info("");
+      log.debug("Taking screenshot of filled in input fields.");
+      log.debug("");
       // Take screenshot of home page
       await page.screenshot({
         path: "./screenshots/aus-tokyo-" + dateLocale + ".png",
         fullPage: true,
       });
 
-      log.info("Looking for 'search' button.");
+      log.debug("Looking for 'search' button.");
       await page.$(
         "button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-k8QpJ.VfPpkd-LgbsSe-OWXEXe-Bz112c-M1Soyc.nCP5yc.AjY5Oe.qfvgSe.TUT4y"
       );
 
-      log.info("Clicking search button and waiting for navigation.");
-      log.info("");
-      log.info("");
-      log.info("");
+      log.debug("Clicking search button and waiting for navigation.");
+      log.debug("");
+      log.debug("");
+      log.debug("");
 
       // DEBUG: this was used to watch requests. since waitForNavigation wasn't working, I had to figure out which requests were the ones needed to load the search results.
-      log.info("Turning on request logging.");
+      log.debug("Turning on request logging.");
       page.on("request", logRequest);
-      log.info("");
-      log.info("");
-      log.info("");
+      log.debug("");
+      log.debug("");
+      log.debug("");
 
       // There seem to be 3 important requests we need to wait for to see the results page be loaded.
       const [response1, response2, response3] = await Promise.all([
@@ -249,7 +249,7 @@ Apify.main(async () => {
         ),
       ]);
 
-      // // log.info("response1");
+      // // log.debug("response1");
       // // Note: cache should not be re-used by repeated calls to JSON.stringify.
       // let cache = [];
       // const response1JSONified = JSON.stringify(response1, (key, value) => {
@@ -266,13 +266,13 @@ Apify.main(async () => {
       //   }
       //   return value;
       // });
-      // // log.info(response1JSONified);
+      // // log.debug(response1JSONified);
       // cache = null; // Enable garbage collection
 
-      // // log.info("");
-      // // log.info("");
-      // // log.info("");
-      // // log.info("response2");
+      // // log.debug("");
+      // // log.debug("");
+      // // log.debug("");
+      // // log.debug("response2");
       // // Note: cache should not be re-used by repeated calls to JSON.stringify.
       // cache = [];
       // let response2JSONified = JSON.stringify(response2, (key, value) => {
@@ -290,31 +290,31 @@ Apify.main(async () => {
 
       //   return value;
       // });
-      // // log.info(response2JSONified);
+      // // log.debug(response2JSONified);
       // cache = null;
 
-      log.info("Turning off request logging.");
+      log.debug("Turning off request logging.");
       page.off("request", logRequest);
-      log.info("");
+      log.debug("");
 
-      log.info("Taking screenshot of results page.");
-      log.info("");
+      log.debug("Taking screenshot of results page.");
+      log.debug("");
       // Take screenshot of search results page
       await page.screenshot({
         path: "./screenshots/aus-tokyo-results-" + dateLocale + ".png",
         fullPage: true,
       });
 
-      log.info("");
-      log.info("");
-      log.info("");
-      log.info("Scraping prices...");
+      log.debug("");
+      log.debug("");
+      log.debug("");
+      log.debug("Scraping prices...");
       const flights = await page.$$("[role=listitem]");
       let flightInfos = new Array();
       for (let flight of flights) {
         const theMoreBtn = await flight.$(".zISZ5c.QB2Jof");
         if (theMoreBtn !== null) {
-          log.info("the more button was found");
+          log.debug("the more button was found");
           // if we found the btn, aka it querySelector didn't return null,
           // then this is the row contains the "more" button or the button
           // that expands the search results.
@@ -323,7 +323,7 @@ Apify.main(async () => {
           continue;
         }
 
-        log.info("the more button wasn't found. proceeding.");
+        log.debug("the more button wasn't found. proceeding.");
 
         const data = new Object();
 
@@ -351,35 +351,36 @@ Apify.main(async () => {
           airlineText.length > 1
             ? airlineText[0] + " " + airlineText[1]
             : airlineText[0];
-        log.info("airline");
-        log.info(airlineName);
+        log.debug("airline");
+        log.debug(airlineName);
         data.airline = airlineName;
 
         const times = await flight.$$eval(
           ".zxVSec.YMlIz.tPgKwe.ogfYpf > .mv1WYe [role=text]",
           (nodes) => nodes.map((node) => node.innerText)
         );
-        log.info("times");
-        log.info(times);
+        log.debug("times");
+        log.debug(times);
         data.departureTime = times[0];
         data.arrivalTime = times[1];
 
-        log.info(JSON.stringify(data));
+        log.debug(JSON.stringify(data));
         flightInfos.push(data);
       }
 
-      log.info("flightInfos");
+      log.debug("flightInfos");
       for (let f of flightInfos) {
-        log.info(JSON.stringify(f));
+        log.debug(JSON.stringify(f));
       }
       // Write flights to datastore
       await Apify.pushData(flightInfos);
-      log.info("");
-      log.info("");
-      log.info("");
+      log.debug("");
+      log.debug("");
+      log.debug("");
 
       // Save title to table
-      log.info("Saving output...");
+      log.debug("Saving output...");
+      log.debug("");
       await Apify.setValue("title", {
         title,
       });
@@ -388,16 +389,28 @@ Apify.main(async () => {
       //   response2: response2JSONified,
       // });
     } catch (error) {
+      log.error("");
       log.error("browser or other error:");
       log.error(error);
+      log.error("");
+      log.error("");
+      log.error("");
     } finally {
-      log.info("Closing Puppeteer...");
+      log.debug("Closing Puppeteer...");
+      log.debug("");
       await browser.close();
 
-      log.info("Done.");
+      log.debug("Done.");
+      log.debug("");
+      log.debug("");
+      log.debug("");
     }
   } catch (e) {
+    log.error("");
     log.error("Launch Puppeteer error:");
     log.error(e);
+    log.error("");
+    log.error("");
+    log.error("");
   }
 });

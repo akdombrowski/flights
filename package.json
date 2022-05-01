@@ -4,6 +4,7 @@
   "description": "flights scraper",
   "main": "src/index.js",
   "scripts": {
+    "debug": "APIFY_LOG_LEVEL=DEBUG node src/index.js",
     "start": "node src/index.js",
     "test": "npm run test"
   },
