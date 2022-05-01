@@ -174,7 +174,7 @@ Apify.main(async () => {
                 "https://www.google.com/_/TravelFrontendUi/data/travel.frontend.flights.FlightsFrontendService/GetShoppingResults"
               ),
           {
-            timeout: 120000,
+            timeout: 60000,
           }
         ),
         page.waitForRequest(
@@ -185,7 +185,7 @@ Apify.main(async () => {
                 "https://www.google.com/_/TravelFrontendUi/browserinfo"
               ),
           {
-            timeout: 120000,
+            timeout: 60000,
           }
         ),
         page.waitForRequest(
@@ -196,7 +196,7 @@ Apify.main(async () => {
                 "https://www.google.com/_/TravelFrontendUi/data/batchexecute?rpcids=WR9Xq&source-path=%2Ftravel%2Fflights%2Fsearch"
               ),
           {
-            timeout: 120000,
+            timeout: 60000,
           }
         ),
         // page.waitForRequest(
