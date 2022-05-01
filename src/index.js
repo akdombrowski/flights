@@ -5,240 +5,248 @@
 // Import Apify SDK. For more information, see https://sdk.apify.com/
 const Apify = require("apify");
 const { log } = Apify.utils;
-
-const {
-  initializeApp,
-  applicationDefault,
-  cert,
-} = require("firebase-admin/app");
-const {
-  getFirestore,
-  Timestamp,
-  FieldValue,
-} = require("firebase-admin/firestore");
+const Puppeteer = require("puppeteer");
 
 Apify.main(async () => {
   // Get input of the actor (here only for demonstration purposes).
   // If you'd like to have your input checked and have Apify display
   // a user interface for it, add INPUT_SCHEMA.json file to your actor.
   // For more information, see https://docs.apify.com/actors/development/input-schema
+  // linkedin company directory page
+  const url = "https://www.google.com/travel/flights";
+
+  // see if the user wants to filter by company
   const input = {
-    url: "https://www.nfl.com/prospects/participants/all/",
+    username: "akdombrowski@gmail.com",
+    password: process.env.MY_SECRET_PASSWORD,
+    companyFilter: "Amazon",
+  };
+  const username = input.username;
+  const password = input.password;
+  const companyFilter = input.companyFilter;
+
+  const date = new Date();
+  const dateLocale = date.toISOString();
+  const logRequest = (interceptedRequest) => {
+    if (
+      !(
+        interceptedRequest.url().includes("gstatic") ||
+        interceptedRequest
+          .url()
+          .endsWith("/log?format=json&hasfast=true&authuser=0")
+      )
+    ) {
+      log.info("");
+      log.info("");
+      log.info("");
+      log.info("A request was made: \n" + interceptedRequest.url());
+      log.info("");
+      log.info("");
+      log.info("");
+    }
   };
 
-  //
-  //
-  // init cloud firestore
-  //
-  //
-  const serviceAccount = require("./path/to/serviceAccountKey.json");
-
-  initializeApp({
-    credential: cert(serviceAccount),
-  });
-
-  const db = getFirestore();
-
-  //
-  //
-  //
-  if (!input || !input.url)
-    throw new Error('Input must be a JSON object with the "url" field!');
-
-  //
-  //
-  //
   try {
-    const launchContext = {
-      // Native Puppeteer options
-      launchOptions: {
-        //     headless: true,
-        //     args: ["--some-flag"],
-        timeout: 60000,
-        ignoreDefaultArgs: ["--disable-extensions"],
-      },
+    let launchOptions = { headless: false, slowMo: 000, timeout: 60000 };
+    let launchContext = {
+      launchOptions: launchOptions,
     };
+
     log.info("");
     log.info("Launching Puppeteer...");
-    log.info(
-      "" +
-        "" +
-        "" +
-        "                                                   ,:" +
-        "                                                 ,' |" +
-        "                                                /   :" +
-        "                                             --'   /" +
-        "                                             / />/" +
-        "                                             / /_\\" +
-        "                                          __/   /" +
-        "                                          )'-. /" +
-        "                                          ./  :\\" +
-        "                                           /.' '" +
-        "                                         '/'" +
-        "                                         +" +
-        "                                        '" +
-        "                                      `." +
-        '                                  .-"-' +
-        "                                 (    |" +
-        "                              . .-'  '." +
-        "                             ( (.   )8:" +
-        "                         .'    / (_  )" +
-        "                          _. :(.   )8P  `" +
-        "                      .  (  `-' (  `.   ." +
-        "                       .  :  (   .a8a)" +
-        '                      /_`( "a `a. )"\'' +
-        "                  (  (/  .  ' )=='" +
-        '                 (   (    )  .8"   +' +
-        "                   (`'8a.( _(   (" +
-        "                ..-. `8P    ) `  )  +" +
-        "              -'   (      -ab:  )" +
-        "            '    _  `    (8P\"Ya" +
-        "          _(    (    )b  -`.  ) +" +
-        '         ( 8)  ( _.aP" _a   ( \\  *' +
-        "       +  )/    (8P   (88    )  )" +
-        '          (a:f   "     `"       `' +
-        ""
-    );
     log.info("");
-    log.info("");
-
     // console.log("Launching Puppeteer...");
     const browser = await Apify.launchPuppeteer(launchContext);
+
     try {
-      console.log("");
-      console.log("");
-      console.log("");
-      console.log(`Opening page ${input.url}...`);
-      console.log("");
       const page = await browser.newPage();
-      page.on("console", async (msg) => {
-        const msgArgs = msg.args();
-        for (let i = 0; i < msgArgs.length; ++i) {
-          console.log(await msgArgs[i].jsonValue());
-        }
-      });
-      await page.goto(input.url);
 
+      log.info(`Opening page ${url}...`);
+      const [goToURL] = await Promise.all([
+        page.waitForNavigation({
+          timeout: 60000,
+          waitUntil: "networkidle2",
+        }),
+        page.goto(url, { timeout: 120000 }),
+      ]);
+      log.info("goToURL");
+      log.info(goToURL[0]);
+      log.info("");
+
+      // Get title of the page.
       const title = await page.title();
-      console.log("");
-      console.log(`Title of the page "${input.url}" is "${title}".`);
-      console.log("");
+      log.info(`Title of the page "${url}" is "${title}".`);
+      log.info("");
 
-      console.log("");
-      console.log("Getting nfl draft prospects...");
-      console.log("");
+      log.info("Waiting for page loading.");
+      log.info("");
 
-      // wait for "loadedContent" which contains player list
-      // document.querySelector("#main-content > section:nth-child(3) > div > div > div > div > div > div.loadedContent")
-      //
-      console.log("");
-      console.log("Waiting for content to load...");
-      console.log("");
-      await page.waitForXPath(
-        "//body[1]/div[3]/main[1]/section[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[3]/div[1]/div[1]/div[1]"
+      log.info("Finding input fields for beginning and ending locations.");
+      log.info("");
+      const whereToAncestor = await page.$('[aria-placeholder="Where to?"]');
+      const whereFromAncestor = await page.$(
+        '[aria-placeholder="Where from?"]'
+      );
+      const whereTo = await whereToAncestor.$("input");
+      const whereFrom = await whereFromAncestor.$("input");
+
+      // start typing Austin
+      // you'll get a dropdown of suggestions
+      // click the austin, texas suggestion
+      log.info("WHERE FROM");
+      log.info("Type in the traveling from location.");
+      await whereFrom.focus();
+      await whereFrom.click();
+      log.info("Deleting default value.");
+      await whereFrom.press("Backspace");
+      await whereFrom.press("Backspace");
+      await whereFrom.press("Backspace");
+      await whereFrom.press("Backspace");
+      await whereFrom.press("Backspace");
+      await whereFrom.press("Backspace");
+      log.info("Typing in location.");
+      await whereFrom.type("Austin", { delay: 00 });
+      log.info("Waiting for the right suggestion in the dropdown list.");
+      let austinDropdownItem;
+      try {
+        austinDropdownItem = await page.waitForSelector(
+          'li[aria-label="Austin, Texas"]',
+          { visible: true }
+        );
+      } catch (error) {
+        log.info("Trying again.");
+        log.info(
+          "Switch focus to where to input field briefly before switching back."
+        );
+        await whereTo.focus();
+        await whereFrom.focus();
+        await whereFrom.press("Backspace");
+        austinDropdownItem = await page.waitForSelector(
+          'li[aria-label="Austin, Texas"]',
+          { visible: true }
+        );
+      }
+      log.info("Click on the suggestion");
+      austinDropdownItem
+        ? await austinDropdownItem.click()
+        : log.error("oops austin isn't in dropdown suggetions");
+      // await whereFrom.press("Enter");
+      log.info("");
+
+      log.info("WHERE TO");
+      log.info("Focus on the 'where to' input field.");
+      const clickBox = await whereTo.focus();
+      log.info("Typing in travel destination.");
+      await whereTo.type("Tokyo", { delay: 000 });
+      log.info("Waiting for the right suggestion in the drop down list.");
+      const tokyoDropdownItem = await page.waitForSelector(
+        'li[aria-label="Tokyo, Japan"]',
+        { visible: true }
+      );
+      log.info("Clicking suggestion.");
+      log.info("");
+      await tokyoDropdownItem.click();
+      // await whereTo.press("Enter");
+
+      log.info("Taking screenshot of filled in input fields.");
+      log.info("");
+      // Take screenshot of home page
+      await page.screenshot({
+        path: "./screenshots/aus-tokyo-" + dateLocale + ".png",
+        fullPage: true,
+      });
+
+      log.info("Looking for 'search' button.");
+      const searchBtn = await page.$(
+        "button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-k8QpJ.VfPpkd-LgbsSe-OWXEXe-Bz112c-M1Soyc.nCP5yc.AjY5Oe.qfvgSe.TUT4y"
       );
 
-      // load loadedContent node first and use that as a relative root
-      const loadedContent = await page.$(".loadedContent");
-      const playerInfoBlockArr = await loadedContent.$x("./div/div/div/div");
-      const playerInfoBlock = playerInfoBlockArr[0];
-      const players = await playerInfoBlock.$x("child::div");
-      const playerLinks = await playerInfoBlock.$x(".//a");
+      log.info("Clicking search button and waiting for navigation.");
+      log.info("");
+      log.info("Turning on request logging.");
+      page.on("request", logRequest);
+      const [response1, response2] = await Promise.all([
+        page.waitForRequest(
+          (request) =>
+            request
+              .url()
+              .startsWith(
+                "https://www.google.com/_/TravelFrontendUi/data/travel.frontend.flights.FlightsFrontendService/GetShoppingResults"
+              ),
+          {
+            timeout: 120000,
+          }
+        ),
+        page.waitForRequest(
+          (request) =>
+            request
+              .url()
+              .startsWith(
+                "https://www.google.com/_/TravelFrontendUi/browserinfo"
+              ),
+          {
+            timeout: 120000,
+          }
+        ),
+        page.waitForRequest(
+          (request) =>
+            request
+              .url()
+              .startsWith(
+                "https://www.google.com/_/TravelFrontendUi/data/batchexecute?rpcids=WR9Xq&source-path=%2Ftravel%2Fflights%2Fsearch"
+              ),
+          {
+            timeout: 120000,
+          }
+        ),
+        // page.waitForRequest(
+        //   (request) =>
+        //     request
+        //       .url()
+        //       .startsWith("https://www.google.com/travel/flights?tfs"),
+        //   {
+        //     timeout: 600000,
+        //   }
+        // ),
+        page.click(
+          "button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-k8QpJ.VfPpkd-LgbsSe-OWXEXe-Bz112c-M1Soyc.nCP5yc.AjY5Oe.qfvgSe.TUT4y"
+        ),
+        // page.waitForNavigation(), //{ timeout: 120000, waitUntil: "load" }),
+      ]);
+      log.info("response1");
+      log.info(response1);
+      log.info("response2");
+      log.info(response2);
+      log.info("Turning off request logging.");
+      page.off("request", logRequest);
+      log.info("");
+      log.info("");
+      log.info("");
 
-      console.log("Number of players:");
-      console.log(players.length);
-      console.log("Number of playerLinks:");
-      console.log(playerLinks.length);
+      log.info("Taking screenshot of results page.");
+      log.info("");
+      // Take screenshot of search results page
+      await page.screenshot({
+        path: "./screenshots/aus-tokyo-results-" + dateLocale + ".png",
+        fullPage: true,
+      });
 
-      const links = [];
-      for (const elementHandle of playerLinks) {
-        const href = await elementHandle.evaluate((node) => node.href);
-        const threeThingsContainer = await elementHandle.$x(
-          "./div/div/div/div/div/div"
-        );
-        links.push(href);
-        const theThreeThings = await threeThingsContainer[0].$x("./div");
-        const imgNode = theThreeThings[0];
-        const nameDetailsNode = theThreeThings[1];
-        const scoreNode = theThreeThings[2];
-
-        //
-        // image handling, left container
-        //
-        const imgArr = await imgNode.$x(".//img");
-        const imgLink = await imgArr[0].evaluate((node) => node.src);
-
-        //
-        // name, year, position, team handling; middle container
-        //
-        // break the middle container down into: 1) name and year 2) position and team.
-        const nameYearPositionTeamContainer = await nameDetailsNode.$x("./div");
-        const nameYear = nameYearPositionTeamContainer[0];
-        const positionTeam = nameYearPositionTeamContainer[1];
-
-        // split name and year to get each value
-        const nameYearArr = await nameYear.$x("./div");
-        const nameNode = nameYearArr[0];
-        const yearNode = nameYearArr[1];
-        const name = await nameNode.evaluate((node) => node.innerText);
-        const yearWithParen = await yearNode.evaluate((node) => node.innerText);
-        // strip year of parentheses
-        const year = yearWithParen.slice(1, 5);
-
-        const positionTeamString = await positionTeam.evaluate(
-          (node) => node.innerText
-        );
-        // split string into position and team
-        const posTeamStrArr = positionTeamString.split("•");
-        const position = posTeamStrArr[0].trim();
-        const team = posTeamStrArr[1].trim();
-
-        //
-        // score, right container
-        //
-        const scoreChildren = await scoreNode.$x("./div");
-        const scoreCount = await scoreChildren[0].evaluate(
-          (node) => node.innerText
-        );
-
-        await Apify.pushData({
-          name: name,
-          img: imgLink,
-          year: year,
-          pos: position,
-          team: team,
-          score: scoreCount,
-        });
-      }
+      // Save title to table
+      log.info("Saving output...");
+      await Apify.setValue("title", {
+        title,
+      });
     } catch (error) {
-      console.log("");
-      console.log("");
-      console.log("browser or other error:");
-      console.log(error);
-      console.log("");
-      log.error("");
       log.error("browser or other error:");
       log.error(error);
     } finally {
-      console.log("");
-      console.log("Closing Puppeteer...");
-      console.log("");
-      log.info("");
       log.info("Closing Puppeteer...");
-
       await browser.close();
 
-      console.log("");
-      console.log("");
-      console.log("Done.");
-      console.log("");
-      log.info("");
       log.info("Done.");
     }
   } catch (e) {
-    console.log("");
-    console.log("");
-    console.log("Launch Puppeteer error:");
-    console.log(e);
+    log.error("Launch Puppeteer error:");
+    log.error(e);
   }
 });

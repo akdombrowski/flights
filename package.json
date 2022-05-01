@@ -29,7 +29,6 @@
   "homepage": "https://github.com/akdombrowski/flights#readme",
   "dependencies": {
     "apify": "^2.2.1",
-    "firebase-admin": "^10.1.0",
     "puppeteer": "^13.1.2"
   }
 }
