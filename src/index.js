@@ -46,7 +46,7 @@ Apify.main(async () => {
 
   try {
     let launchOptions = {
-      headless: false,
+      headless: true,
       devtools: true,
       // slowMo: 000,
       timeout: 60000,
