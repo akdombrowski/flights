@@ -55,7 +55,7 @@ Apify.main(async () => {
       args: [
         // "--window-size=1920,1080",
         // '--window-position=0,0',
-        "--start-maximized",
+        // "--start-maximized",
         "--disable-gpu",
         "--disable-dev-shm-usage",
         "--disable-setuid-sandbox",
@@ -309,6 +309,13 @@ Apify.main(async () => {
       log.debug("");
       log.debug("");
       log.debug("Scraping prices...");
+      log.debug("attempting to scroll through all results");
+      await Apify.utils.puppeteer.infiniteScroll(page, {
+        timeoutSecs: 30,
+        waitForSecs: 5,
+        scrollDownAndUp: true,
+        buttonSelector: "[role=listitem] .zISZ5c.QB2Jof",
+      });
       const flights = await page.$$("[role=listitem]");
       let flightInfos = new Array();
       for (let flight of flights) {
