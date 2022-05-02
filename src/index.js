@@ -176,11 +176,20 @@ Apify.main(async () => {
 
       log.debug("Taking screenshot of filled in input fields.");
       log.debug("");
-      // Take screenshot of home page
-      await page.screenshot({
-        path: "./screenshots/aus-tokyo-" + dateLocale + ".png",
-        fullPage: true,
-      });
+      if (Apify.isAtHome()) {
+        // we're running on the Apify platform,
+        // save screenshot to keyvalue store
+        let screenshot = await page.screenshot({ type: "png", fullPage: true });
+        // Open a named key-value store
+        const screenshotsStore = await Apify.openKeyValueStore("screenshots");
+        await screenshotsStore.setValue("homePageImage", screenshot);
+      } else {
+        // Take screenshot of home page
+        await page.screenshot({
+          path: "./screenshots/aus-tokyo-" + dateLocale + ".png",
+          fullPage: true,
+        });
+      }
 
       log.debug("Looking for 'search' button.");
       await page.$(
@@ -441,12 +450,24 @@ Apify.main(async () => {
 
       log.debug("Taking screenshot of results page.");
       log.debug("");
-      // Take screenshot of search results page
-      await page.screenshot({
-        path: "./screenshots/aus-tokyo-results-" + dateLocale + ".png",
-        fullPage: true,
-      });
-
+      if (Apify.isAtHome()) {
+        // we're running on the Apify platform,
+        // save screenshot to key value store
+        screenshot = await page.screenshot({
+          type: ".png",
+          fullPage: true,
+        });
+        log.debug("saving image to data store.");
+        await screenshotsStore.setValue("resultsPageImage", screenshot);
+        log.debug("saved");
+        log.debug("");
+      } else {
+        // Take screenshot of search results page
+        await page.screenshot({
+          path: "./screenshots/aus-tokyo-results-" + dateLocale + ".png",
+          fullPage: true,
+        });
+      }
       log.debug("flightInfos");
       for (let f of flights) {
         log.debug(JSON.stringify(f));
