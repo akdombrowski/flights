@@ -36,9 +36,7 @@ Apify.main(async () => {
     ) {
       log.debug("");
       log.debug("");
-      log.debug("");
       log.debug("A request was made: \n" + interceptedRequest.url());
-      log.debug("");
       log.debug("");
       log.debug("");
     }
@@ -86,7 +84,9 @@ Apify.main(async () => {
         log.error(err);
       });
 
+      log.debug("");
       log.debug(`Opening page ${url}...`);
+      log.debug("");
       const [goToURL] = await Promise.all([
         page.waitForNavigation({
           timeout: 60000,
@@ -100,6 +100,7 @@ Apify.main(async () => {
 
       // Get title of the page.
       const title = await page.title();
+      log.debug("");
       log.debug(`Title of the page "${url}" is "${title}".`);
       log.debug("");
 
@@ -454,7 +455,7 @@ Apify.main(async () => {
         // we're running on the Apify platform,
         // save screenshot to key value store
         screenshot = await page.screenshot({
-          type: ".png",
+          type: "png",
           fullPage: true,
         });
         log.debug("saving image to data store.");
