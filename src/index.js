@@ -82,6 +82,10 @@ Apify.main(async () => {
       // get existing tab/page (first item in the array)
       var [page] = await browser.pages();
 
+      page.on("pageerror", (err) => {
+        log.error(err);
+      });
+
       log.debug(`Opening page ${url}...`);
       const [goToURL] = await Promise.all([
         page.waitForNavigation({
@@ -297,47 +301,106 @@ Apify.main(async () => {
       page.off("request", logRequest);
       log.debug("");
 
-      log.debug("Taking screenshot of results page.");
-      log.debug("");
-      // Take screenshot of search results page
-      await page.screenshot({
-        path: "./screenshots/aus-tokyo-results-" + dateLocale + ".png",
-        fullPage: true,
-      });
-
       log.debug("");
       log.debug("");
       log.debug("");
       log.debug("Scraping prices...");
       log.debug("attempting to scroll through all results");
-      await Apify.utils.puppeteer.infiniteScroll(page, {
-        timeoutSecs: 30,
-        waitForSecs: 5,
-        scrollDownAndUp: true,
-        buttonSelector: "[role=listitem] .zISZ5c.QB2Jof",
+      await page.waitForSelector("[role=listitem] .zISZ5c.QB2Jof .bEfgkb", {
+        visible: true,
+        timeout: 30000,
       });
-      const flights = await page.$$("[role=listitem]");
-      let flightInfos = new Array();
-      for (let flight of flights) {
-        const theMoreBtn = await flight.$(".zISZ5c.QB2Jof");
-        if (theMoreBtn !== null) {
-          log.debug("the more button was found");
-          // if we found the btn, aka it querySelector didn't return null,
-          // then this is the row contains the "more" button or the button
-          // that expands the search results.
-          // we want to continue to the next iteration of the for loop or
-          // exit out of it if we've reached the end.
+      log.debug("waiting for the 'more' button's icon to load");
+      await page.waitForSelector("[role=listitem] .zISZ5c.QB2Jof svg");
+      log.debug("finished loading");
+
+      let theMoreBtn = await page.$("[role=listitem] .zISZ5c.QB2Jof");
+      if (theMoreBtn !== null) {
+        // O.O  a button
+        log.debug("the more button was found");
+        log.debug("");
+        // let's click it!
+        let theMoreBtnSpan = await theMoreBtn.$(".bEfgkb");
+        let theMoreBtnSpanText = await theMoreBtnSpan.evaluate(
+          (span) => span.innerText
+        );
+        log.debug("theMoreBtnSpanText");
+        log.debug(theMoreBtnSpanText);
+        log.debug(typeof theMoreBtnSpanText);
+        log.debug("");
+
+        let showMeMore = !theMoreBtnSpanText
+          ? false
+          : theMoreBtnSpanText.includes("more");
+
+        let i = 0;
+        while (showMeMore && i < 1000) {
+          log.debug('trying to click "more" button');
+          // let botton = await theMoreBtn.evaluateHandle((btn) => btn.click());
+          await page.click("[role=listitem] .zISZ5c.QB2Jof");
+          log.debug("clicked");
+          log.debug("");
+          await Apify.utils.sleep(1000);
+
+          theMoreBtn = await page.$("[role=listitem] .zISZ5c.QB2Jof");
+          theMoreBtnSpan = await theMoreBtn.$(".bEfgkb");
+          log.debug("theMoreBtnSpan");
+          log.debug(theMoreBtnSpan);
+          theMoreBtnSpanText =
+            theMoreBtnSpan == null
+              ? null
+              : await theMoreBtnSpan.evaluate((span) => span.innerText);
+          showMeMore =
+            theMoreBtnSpanText == null
+              ? false
+              : theMoreBtnSpanText.includes("more");
+
+          log.debug("theMoreBtnSpanText");
+          log.debug(theMoreBtnSpanText);
+          log.debug("showMeMore");
+          log.debug(showMeMore);
+          log.debug("");
+          i++;
+        }
+      }
+
+      const roleListItems = await page.$$("[role=listitem]");
+      // await roleListItems.$eval(".zISZ5c.QB2Jof", (node) => node.click());
+      // await Apify.utils.puppeteer.infiniteScroll(page, {
+      //   timeoutSecs: 30,
+      //   waitForSecs: 5,
+      //   scrollDownAndUp: true,
+      //   buttonSelector: "[role=listitem] .zISZ5c.QB2Jof",
+      // });
+
+      let flights = new Array();
+      for (let f of roleListItems) {
+        let bottomRowSpan = await f.$(".bEfgkb");
+        let innerTxt =
+          bottomRowSpan == null
+            ? ""
+            : await bottomRowSpan.evaluate((node) => node.innerText);
+
+        if (innerTxt.includes("more")) {
+          log.debug(
+            "Uh oh. Found more button. Need to expand to see all results."
+          );
+          log.debug("");
+          continue;
+        } else if (innerTxt.includes("Hide")) {
+          log.debug(
+            "We've hit the 'Hide' button, the last row on the results page."
+          );
+          log.debug("");
           continue;
         }
-
-        log.debug("the more button wasn't found. proceeding.");
 
         const data = new Object();
 
         // tip for future, they use .YMlIz.FpEdX.jLMuyc when
         // it's a better than typical fare, ie, when the
         // price shows in green in the UI
-        const price = await flight.$eval(
+        const price = await f.$eval(
           ".YMlIz.FpEdX > span",
           (node) => node.innerText
         );
@@ -345,7 +408,7 @@ Apify.main(async () => {
 
         // const airline = await flight.$$(
         //   ".TQqf0e.sSHqwe.tPgKwe.ogfYpf > span");
-        const airline = await flight.$$eval(
+        const airline = await f.$$eval(
           ".TQqf0e.sSHqwe.tPgKwe.ogfYpf span",
           (nodes) =>
             nodes.map((node, i) => {
@@ -362,7 +425,7 @@ Apify.main(async () => {
         log.debug(airlineName);
         data.airline = airlineName;
 
-        const times = await flight.$$eval(
+        const times = await f.$$eval(
           ".zxVSec.YMlIz.tPgKwe.ogfYpf > .mv1WYe [role=text]",
           (nodes) => nodes.map((node) => node.innerText)
         );
@@ -372,15 +435,23 @@ Apify.main(async () => {
         data.arrivalTime = times[1];
 
         log.debug(JSON.stringify(data));
-        flightInfos.push(data);
+        flights.push(data);
       }
 
+      log.debug("Taking screenshot of results page.");
+      log.debug("");
+      // Take screenshot of search results page
+      await page.screenshot({
+        path: "./screenshots/aus-tokyo-results-" + dateLocale + ".png",
+        fullPage: true,
+      });
+
       log.debug("flightInfos");
-      for (let f of flightInfos) {
+      for (let f of flights) {
         log.debug(JSON.stringify(f));
       }
       // Write flights to datastore
-      await Apify.pushData(flightInfos);
+      await Apify.pushData(flights);
       log.debug("");
       log.debug("");
       log.debug("");
