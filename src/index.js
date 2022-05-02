@@ -316,15 +316,25 @@ Apify.main(async () => {
         );
       } catch (error) {
         // retry once
+        log.debug("click search and wait for navigation failed. retrying...");
+        log.debug("");
+
         const searchBtn = await page.$(
           "button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-k8QpJ.VfPpkd-LgbsSe-OWXEXe-Bz112c-M1Soyc.nCP5yc.AjY5Oe.qfvgSe.TUT4y"
         );
+
         if (searchBtn) {
+          log.debug(
+            "search button still shows. click it and wait for navigation to search results page"
+          );
           // search btn still shows, try clicking again
           [response1, response2, response3] =
             await clickSearchAndWaitForResults(page);
         } else {
           // search btn not found, just wait for page to load
+          log.debug(
+            "search button not found. Just wait for search results page to load"
+          );
           [response1, response2, response3] = await waitForResults(page);
         }
       }
