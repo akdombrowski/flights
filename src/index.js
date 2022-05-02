@@ -270,9 +270,12 @@ Apify.main(async () => {
       await tokyoDropdownItem.click();
       // await whereTo.press("Enter");
 
+      //
+      // Screenshot
+      //
       log.debug("Taking screenshot of filled in input fields.");
       log.debug("");
-      const screenshotsKeyValueStore = Apify.openKeyValueStore("screenshots");
+      const screenshotsKeyValueStore = await Apify.openKeyValueStore("screenshots");
       if (Apify.isAtHome()) {
         // we're running on the Apify platform,
         // save screenshot to keyvalue store
@@ -290,7 +293,7 @@ Apify.main(async () => {
       }
 
       //
-      //
+      // Click search to get results!
       //
       log.debug("");
       log.debug("Looking for 'search' button.");
