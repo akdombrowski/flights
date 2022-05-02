@@ -113,7 +113,14 @@ Apify.main(async () => {
   const companyFilter = input.companyFilter;
 
   const date = new Date();
-  const dateLocale = date.toISOString();
+  const dateFileAppend =
+    date.toDateString().replace(" ", "-") +
+    "-" +
+    date.getHours() +
+    "-" +
+    date.getMinutes() +
+    "-" +
+    date.getSeconds();
   const logRequest = (interceptedRequest) => {
     if (
       !(
@@ -276,7 +283,7 @@ Apify.main(async () => {
       log.debug("Taking screenshot of filled in input fields.");
       log.debug("");
       const screenshotsKeyValueStore = await Apify.openKeyValueStore(
-        "aus-tokyo-flight-results-screenshots-" + dateLocale
+        "aus-tokyo-flight-results-screenshots-" + dateFileAppend
       );
       if (Apify.isAtHome()) {
         // we're running on the Apify platform,
@@ -289,7 +296,7 @@ Apify.main(async () => {
       } else {
         // Take screenshot of home page
         await page.screenshot({
-          path: "./screenshots/aus-tokyo-" + dateLocale + ".png",
+          path: "./screenshots/aus-tokyo-" + dateFileAppend + ".png",
           fullPage: true,
         });
       }
@@ -509,7 +516,7 @@ Apify.main(async () => {
       } else {
         // Take screenshot of search results page
         await page.screenshot({
-          path: "./screenshots/aus-tokyo-results-" + dateLocale + ".png",
+          path: "./screenshots/aus-tokyo-results-" + dateFileAppend + ".png",
           fullPage: true,
         });
       }
@@ -519,7 +526,9 @@ Apify.main(async () => {
       }
       // Write flights to datastore
       // Save a named dataset to a variable
-      const flightPricesDataset = await Apify.openDataset("aus-tokyo-flight-prices-" + dateLocale);
+      const flightPricesDataset = await Apify.openDataset(
+        "aus-tokyo-flight-prices-" + dateFileAppend
+      );
       await flightPricesDataset.pushData(flights);
       log.debug("");
       log.debug("");
