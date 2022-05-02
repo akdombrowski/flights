@@ -136,7 +136,7 @@ Apify.main(async () => {
       try {
         austinDropdownItem = await page.waitForSelector(
           'li[aria-label="Austin, Texas"]',
-          { visible: true, timeout: 10000 }
+          { visible: true, timeout: 1000 }
         );
       } catch (error) {
         log.debug("Trying again.");
