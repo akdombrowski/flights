@@ -192,11 +192,14 @@ Apify.main(async () => {
         });
       }
 
+      //
+      //
+      //
+      log.debug("");
       log.debug("Looking for 'search' button.");
       await page.$(
         "button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-k8QpJ.VfPpkd-LgbsSe-OWXEXe-Bz112c-M1Soyc.nCP5yc.AjY5Oe.qfvgSe.TUT4y"
       );
-
       log.debug("Clicking search button and waiting for navigation.");
       log.debug("");
       log.debug("");
@@ -219,7 +222,7 @@ Apify.main(async () => {
                 "https://www.google.com/_/TravelFrontendUi/data/travel.frontend.flights.FlightsFrontendService/GetShoppingResults"
               ),
           {
-            timeout: 5000,
+            timeout: 15000,
           }
         ),
         page.waitForRequest(
@@ -230,7 +233,7 @@ Apify.main(async () => {
                 "https://www.google.com/_/TravelFrontendUi/browserinfo"
               ),
           {
-            timeout: 5000,
+            timeout: 15000,
           }
         ),
         page.waitForRequest(
@@ -241,7 +244,7 @@ Apify.main(async () => {
                 "https://www.google.com/_/TravelFrontendUi/data/batchexecute?rpcids=WR9Xq&source-path=%2Ftravel%2Fflights%2Fsearch"
               ),
           {
-            timeout: 5000,
+            timeout: 15000,
           }
         ),
         // page.waitForRequest(
@@ -264,53 +267,9 @@ Apify.main(async () => {
         ),
       ]);
 
-      // // log.debug("response1");
-      // // Note: cache should not be re-used by repeated calls to JSON.stringify.
-      // let cache = [];
-      // const response1JSONified = JSON.stringify(response1, (key, value) => {
-      //   if (value === null) {
-      //     return;
-      //   }
-
-      //   if (typeof value === "object" && value !== null) {
-      //     // Duplicate reference found, discard key
-      //     if (cache.includes(value)) return;
-
-      //     // Store value in our collection
-      //     cache.push(value);
-      //   }
-      //   return value;
-      // });
-      // // log.debug(response1JSONified);
-      // cache = null; // Enable garbage collection
-
-      // // log.debug("");
-      // // log.debug("");
-      // // log.debug("");
-      // // log.debug("response2");
-      // // Note: cache should not be re-used by repeated calls to JSON.stringify.
-      // cache = [];
-      // let response2JSONified = JSON.stringify(response2, (key, value) => {
-      //   if (value === null) {
-      //     return;
-      //   }
-
-      //   if (typeof value === "object" && value !== null) {
-      //     // Duplicate reference found, discard key
-      //     if (cache.includes(value)) return;
-
-      //     // Store value in our collection
-      //     cache.push(value);
-      //   }
-
-      //   return value;
-      // });
-      // // log.debug(response2JSONified);
-      // cache = null;
-
-      log.debug("Turning off request logging.");
-      page.off("request", logRequest);
-      log.debug("");
+      // log.debug("Turning off request logging.");
+      // page.off("request", logRequest);
+      // log.debug("");
 
       log.debug("");
       log.debug("");
