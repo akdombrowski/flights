@@ -121,6 +121,8 @@ Apify.main(async () => {
     date.getMinutes() +
     "-" +
     date.getSeconds();
+  log.debug("datetime to append to screenshots:")
+  log.debug(dateFileAppend)
   const logRequest = (interceptedRequest) => {
     if (
       !(
