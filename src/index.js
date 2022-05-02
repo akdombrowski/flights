@@ -272,13 +272,13 @@ Apify.main(async () => {
 
       log.debug("Taking screenshot of filled in input fields.");
       log.debug("");
-      const screenshotsStore = await Apify.openKeyValueStore("screenshots");
+
       if (Apify.isAtHome()) {
         // we're running on the Apify platform,
         // save screenshot to keyvalue store
         let screenshot = await page.screenshot({ type: "png", fullPage: true });
         // Open a named key-value store
-        await screenshotsStore.setValue("homePageImage", screenshot);
+        await Apify.setValue("homePageImage", screenshot);
       } else {
         // Take screenshot of home page
         await page.screenshot({
@@ -490,7 +490,7 @@ Apify.main(async () => {
           fullPage: true,
         });
         log.debug("saving image to data store.");
-        await screenshotsStore.setValue("resultsPageImage", screenshot);
+        await Apify.setValue("resultsPageImage", screenshot);
         log.debug("saved");
         log.debug("");
       } else {
