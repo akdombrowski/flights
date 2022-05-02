@@ -275,7 +275,9 @@ Apify.main(async () => {
       //
       log.debug("Taking screenshot of filled in input fields.");
       log.debug("");
-      const screenshotsKeyValueStore = await Apify.openKeyValueStore("screenshots");
+      const screenshotsKeyValueStore = await Apify.openKeyValueStore(
+        "aus-tokyo-flight-results-screenshots-" + dateLocale
+      );
       if (Apify.isAtHome()) {
         // we're running on the Apify platform,
         // save screenshot to keyvalue store
@@ -517,7 +519,7 @@ Apify.main(async () => {
       }
       // Write flights to datastore
       // Save a named dataset to a variable
-      const flightPricesDataset = await Apify.openDataset("aus-tokyo-flight-prices");
+      const flightPricesDataset = await Apify.openDataset("aus-tokyo-flight-prices-" + dateLocale);
       await flightPricesDataset.pushData(flights);
       log.debug("");
       log.debug("");
