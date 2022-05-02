@@ -221,59 +221,18 @@ Apify.main(async () => {
       // log.debug("");
 
       // There seem to be 3 important requests we need to wait for to see the results page be loaded.
-      const [response1, response2, response3] = await Promise.all([
-        page.waitForRequest(
-          (request) =>
-            request
-              .url()
-              .startsWith(
-                "https://www.google.com/_/TravelFrontendUi/data/travel.frontend.flights.FlightsFrontendService/GetShoppingResults"
-              ),
-          {
-            timeout: 15000,
-          }
-        ),
-        page.waitForRequest(
-          (request) =>
-            request
-              .url()
-              .startsWith(
-                "https://www.google.com/_/TravelFrontendUi/browserinfo"
-              ),
-          {
-            timeout: 15000,
-          }
-        ),
-        page.waitForRequest(
-          (request) =>
-            request
-              .url()
-              .startsWith(
-                "https://www.google.com/_/TravelFrontendUi/data/batchexecute?rpcids=WR9Xq&source-path=%2Ftravel%2Fflights%2Fsearch"
-              ),
-          {
-            timeout: 15000,
-          }
-        ),
-        // page.waitForRequest(
-        //   (request) =>
-        //     request
-        //       .url()
-        //       .startsWith("https://www.google.com/travel/flights?tfs"),
-        //   {
-        //     timeout: 600000,
-        //   }
-        // ),
 
-        // page.waitForNavigation({
-        //   timeout: 120000,
-        //   waitUntil: "domcontentloaded",
-        // }),
-
-        page.click(
-          "button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-k8QpJ.VfPpkd-LgbsSe-OWXEXe-Bz112c-M1Soyc.nCP5yc.AjY5Oe.qfvgSe.TUT4y"
-        ),
-      ]);
+      let response1, response2, response3;
+      try {
+        [response1, response2, response3] = await clickSearchAndWaitForResults(
+          page
+        );
+      } catch (error) {
+        // retry once
+        [response1, response2, response3] = await clickSearchAndWaitForResults(
+          page
+        );
+      }
 
       // log.debug("Turning off request logging.");
       // page.off("request", logRequest);
@@ -482,3 +441,54 @@ Apify.main(async () => {
     log.error("");
   }
 });
+clickSearchAndWaitForResults = async (page) => {
+  return await Promise.all([
+    page.waitForRequest(
+      (request) =>
+        request
+          .url()
+          .startsWith(
+            "https://www.google.com/_/TravelFrontendUi/data/travel.frontend.flights.FlightsFrontendService/GetShoppingResults"
+          ),
+      {
+        timeout: 15000,
+      }
+    ),
+    page.waitForRequest(
+      (request) =>
+        request
+          .url()
+          .startsWith("https://www.google.com/_/TravelFrontendUi/browserinfo"),
+      {
+        timeout: 15000,
+      }
+    ),
+    page.waitForRequest(
+      (request) =>
+        request
+          .url()
+          .startsWith(
+            "https://www.google.com/_/TravelFrontendUi/data/batchexecute?rpcids=WR9Xq&source-path=%2Ftravel%2Fflights%2Fsearch"
+          ),
+      {
+        timeout: 15000,
+      }
+    ),
+    // page.waitForRequest(
+    //   (request) =>
+    //     request
+    //       .url()
+    //       .startsWith("https://www.google.com/travel/flights?tfs"),
+    //   {
+    //     timeout: 600000,
+    //   }
+    // ),
+    // page.waitForNavigation({
+    //   timeout: 120000,
+    //   waitUntil: "domcontentloaded",
+    // }),
+    page.click(
+      "button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-k8QpJ.VfPpkd-LgbsSe-OWXEXe-Bz112c-M1Soyc.nCP5yc.AjY5Oe.qfvgSe.TUT4y"
+    ),
+  ]);
+};
