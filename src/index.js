@@ -272,13 +272,13 @@ Apify.main(async () => {
 
       log.debug("Taking screenshot of filled in input fields.");
       log.debug("");
-
+      const screenshotsKeyValueStore = Apify.openKeyValueStore("screenshots");
       if (Apify.isAtHome()) {
         // we're running on the Apify platform,
         // save screenshot to keyvalue store
         let screenshot = await page.screenshot({ type: "png", fullPage: true });
         // Open a named key-value store
-        await Apify.setValue("homePageImage", screenshot, {
+        await screenshotsKeyValueStore.setValue("homePageImage", screenshot, {
           contentType: "image/png",
         });
       } else {
@@ -492,9 +492,13 @@ Apify.main(async () => {
           fullPage: true,
         });
         log.debug("saving image to data store.");
-        await Apify.setValue("resultsPageImage", screenshot, {
-          contentType: "image/png",
-        });
+        await screenshotsKeyValueStore.setValue(
+          "resultsPageImage",
+          screenshot,
+          {
+            contentType: "image/png",
+          }
+        );
         log.debug("saved");
         log.debug("");
       } else {
@@ -509,7 +513,9 @@ Apify.main(async () => {
         log.debug(JSON.stringify(f));
       }
       // Write flights to datastore
-      await Apify.pushData(flights);
+      // Save a named dataset to a variable
+      const flightPricesDataset = await Apify.openDataset("aus-tokyo-flight-prices");
+      await flightPricesDataset.pushData(flights);
       log.debug("");
       log.debug("");
       log.debug("");
@@ -520,10 +526,6 @@ Apify.main(async () => {
       await Apify.setValue("title", {
         title,
       });
-      // await Apify.pushData({
-      //   response1: response1JSONified,
-      //   response2: response2JSONified,
-      // });
     } catch (error) {
       log.error("");
       log.error("browser or other error:");
