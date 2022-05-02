@@ -133,26 +133,34 @@ Apify.main(async () => {
       log.debug("Typing in location.");
       await whereFrom.type("Austin", { delay: 00 });
       log.debug("Waiting for the right suggestion in the dropdown list.");
+
       let austinDropdownItem;
-      try {
-        austinDropdownItem = await page.waitForSelector(
-          'li[aria-label="Austin, Texas"]',
-          { visible: true, timeout: 1000 }
-        );
-      } catch (error) {
-        log.debug("Trying again.");
-        log.debug(
-          "Switch focus to where to input field briefly before switching back."
-        );
-        await whereTo.focus();
-        await whereFrom.focus();
-        await whereFrom.press("Backspace");
-        await whereFrom.type("Austin", { delay: 00 });
-        austinDropdownItem = await page.waitForSelector(
-          'li[aria-label="Austin, Texas"]',
-          { visible: true, timeout: 1000 }
-        );
+      let t = 0;
+      while (!austinDropdownItem && t < 100) {
+        try {
+          austinDropdownItem = await page.waitForSelector(
+            'li[aria-label="Austin, Texas"]',
+            { visible: true, timeout: 1000 }
+          );
+        } catch (error) {
+          log.debug("Trying again.");
+          log.debug(
+            "Switch focus to where to input field briefly before switching back."
+          );
+          await whereTo.focus();
+          await whereFrom.focus();
+          await whereFrom.press("Backspace");
+          await whereFrom.type("Austin", { delay: 00 });
+          austinDropdownItem = await page.waitForSelector(
+            'li[aria-label="Austin, Texas"]',
+            { visible: true, timeout: 1000 }
+          );
+        } finally {
+          t++;
+        }
       }
+
+      // click it!
       log.debug("Click on the suggestion");
       austinDropdownItem
         ? await austinDropdownItem.click()
