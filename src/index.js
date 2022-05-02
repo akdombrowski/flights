@@ -146,6 +146,7 @@ Apify.main(async () => {
         await whereTo.focus();
         await whereFrom.focus();
         await whereFrom.press("Backspace");
+        await whereFrom.type("Austin", { delay: 00 });
         austinDropdownItem = await page.waitForSelector(
           'li[aria-label="Austin, Texas"]',
           { visible: true, timeout: 1000 }
