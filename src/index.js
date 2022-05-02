@@ -300,12 +300,12 @@ Apify.main(async () => {
       log.debug("");
       log.debug("");
 
-      // // DEBUG: this was used to watch requests. since waitForNavigation wasn't working, I had to figure out which requests were the ones needed to load the search results.
-      // log.debug("Turning on request logging.");
-      // page.on("request", logRequest);
-      // log.debug("");
-      // log.debug("");
-      // log.debug("");
+      // DEBUG: this was used to watch requests. since waitForNavigation wasn't working, I had to figure out which requests were the ones needed to load the search results.
+      log.debug("Turning on request logging.");
+      page.on("request", logRequest);
+      log.debug("");
+      log.debug("");
+      log.debug("");
 
       // There seem to be 3 important requests we need to wait for to see the results page be loaded.
 
@@ -339,9 +339,9 @@ Apify.main(async () => {
         }
       }
 
-      // log.debug("Turning off request logging.");
-      // page.off("request", logRequest);
-      // log.debug("");
+      log.debug("Turning off request logging.");
+      page.off("request", logRequest);
+      log.debug("");
 
       log.debug("");
       log.debug("");
