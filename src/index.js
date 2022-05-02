@@ -335,9 +335,9 @@ Apify.main(async () => {
         } else {
           // search btn not found, just wait for page to load
           log.debug(
-            "search button not found. Just wait for search results page to load"
+            "search button not found. Just wait a bit and see if the search results page loads"
           );
-          [response1, response2, response3] = await waitForSearchResults(page);
+          Apify.utils.sleep(15000);
         }
       }
 
