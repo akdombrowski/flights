@@ -112,17 +112,6 @@ Apify.main(async () => {
   const password = input.password;
   const companyFilter = input.companyFilter;
 
-  const date = new Date();
-  const dateFileAppend =
-    date.toDateString().replace(" ", "-") +
-    "-" +
-    date.getHours() +
-    "-" +
-    date.getMinutes() +
-    "-" +
-    date.getSeconds();
-  log.debug("datetime to append to screenshots:")
-  log.debug(dateFileAppend)
   const logRequest = (interceptedRequest) => {
     if (
       !(
@@ -247,10 +236,6 @@ Apify.main(async () => {
           await whereFrom.focus();
           await whereFrom.press("Backspace");
           await whereFrom.type("Austin", { delay: 00 });
-          austinDropdownItem = await page.waitForSelector(
-            'li[aria-label="Austin, Texas"]',
-            { visible: true, timeout: 60000 }
-          );
         } finally {
           t++;
         }
@@ -285,6 +270,21 @@ Apify.main(async () => {
       //
       // Screenshot
       //
+      const date = new Date();
+      const dateFileAppend =
+        date.toDateString().replaceAll(" ", "-") +
+        "-" +
+        date.getHours() +
+        "-" +
+        date.getMinutes() +
+        "-" +
+        date.getSeconds();
+      log.debug("");
+      log.debug("");
+      log.debug("");
+      log.debug("datetime to append to screenshots:");
+      log.debug(dateFileAppend);
+      log.debug("");
       log.debug("Taking screenshot of filled in input fields.");
       log.debug("");
       const screenshotsKeyValueStore = await Apify.openKeyValueStore(
@@ -317,13 +317,10 @@ Apify.main(async () => {
       log.debug("Clicking search button and waiting for navigation.");
       log.debug("");
       log.debug("");
-      log.debug("");
 
       // DEBUG: this was used to watch requests. since waitForNavigation wasn't working, I had to figure out which requests were the ones needed to load the search results.
       log.debug("Turning on request logging.");
       page.on("request", logRequest);
-      log.debug("");
-      log.debug("");
       log.debug("");
 
       // There seem to be 3 important requests we need to wait for to see the results page be loaded.
@@ -449,9 +446,14 @@ Apify.main(async () => {
           log.debug("");
           continue;
         } else if (innerTxt.includes("Hide")) {
+          log.debug("");
+          log.debug("");
+          log.debug("");
           log.debug(
             "We've hit the 'Hide' button, the last row on the results page."
           );
+          log.debug("");
+          log.debug("");
           log.debug("");
           continue;
         }
@@ -499,7 +501,10 @@ Apify.main(async () => {
         flights.push(data);
       }
 
+      log.debug("");
       log.debug("Taking screenshot of results page.");
+      log.debug("");
+      log.debug("");
       log.debug("");
       if (Apify.isAtHome()) {
         // we're running on the Apify platform,
