@@ -249,7 +249,7 @@ Apify.main(async () => {
           await whereFrom.type("Austin", { delay: 00 });
           austinDropdownItem = await page.waitForSelector(
             'li[aria-label="Austin, Texas"]',
-            { visible: true, timeout: 10000 }
+            { visible: true, timeout: 60000 }
           );
         } finally {
           t++;
@@ -275,7 +275,7 @@ Apify.main(async () => {
       log.debug("Waiting for the right suggestion in the drop down list.");
       const tokyoDropdownItem = await page.waitForSelector(
         'li[aria-label="Tokyo, Japan"]',
-        { visible: true, timeout: 10000 }
+        { visible: true, timeout: 60000 }
       );
       log.debug("Clicking suggestion.");
       log.debug("");
