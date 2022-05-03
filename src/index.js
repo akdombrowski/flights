@@ -287,15 +287,15 @@ Apify.main(async () => {
       log.debug("");
       log.debug("Taking screenshot of filled in input fields.");
       log.debug("");
-      const screenshotsKeyValueStore = await Apify.openKeyValueStore(
-        "aus-tokyo-flight-results-screenshots-" + dateFileAppend
-      );
+      // const screenshotsKeyValueStore = await Apify.openKeyValueStore(
+      //   "aus-tokyo-flight-results-screenshots-" + dateFileAppend
+      // );
       if (Apify.isAtHome()) {
         // we're running on the Apify platform,
         // save screenshot to keyvalue store
         let screenshot = await page.screenshot({ type: "png", fullPage: true });
         // Open a named key-value store
-        await screenshotsKeyValueStore.setValue("homePageImage", screenshot, {
+        await Apify.setValue("homePageImage", screenshot, {
           contentType: "image/png",
         });
       } else {
@@ -514,7 +514,7 @@ Apify.main(async () => {
           fullPage: true,
         });
         log.debug("saving image to data store.");
-        await screenshotsKeyValueStore.setValue(
+        await Apify.setValue(
           "resultsPageImage",
           screenshot,
           {
@@ -535,11 +535,11 @@ Apify.main(async () => {
         log.debug(JSON.stringify(f));
       }
       // Write flights to datastore
-      // Save a named dataset to a variable
-      const flightPricesDataset = await Apify.openDataset(
-        "aus-tokyo-flight-prices-" + dateFileAppend
-      );
-      await flightPricesDataset.pushData(flights);
+      // // Save a named dataset to a variable
+      // const flightPricesDataset = await Apify.openDataset(
+      //   "aus-tokyo-flight-prices-" + dateFileAppend
+      // );
+      await Apify.pushData(flights);
       log.debug("");
       log.debug("");
       log.debug("");
