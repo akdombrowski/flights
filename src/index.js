@@ -109,8 +109,8 @@ Apify.main(async () => {
     arriveCity: "Tokyo",
     cabinClass: "business",
   };
-  const departCity = input.username;
-  const arriveCity = input.password;
+  const departCity = input.departCity;
+  const arriveCity = input.arriveCity;
   const cabinClass = input.cabinClass;
 
   const logRequest = (interceptedRequest) => {
@@ -140,7 +140,7 @@ Apify.main(async () => {
       args: [
         // "--window-size=1920,1080",
         // '--window-position=0,0',
-        // "--start-maximized",
+        "--start-maximized",
         "--use-gl=egl",
         "--disable-gpu",
         "--disable-dev-shm-usage",
