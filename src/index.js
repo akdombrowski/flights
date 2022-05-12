@@ -102,15 +102,16 @@ Apify.main(async () => {
   // linkedin company directory page
   const url = "https://www.google.com/travel/flights";
 
-  // see if the user wants to filter by company
+  // eventually convert to user input
+  // classes available: economy, premium econom, business, first class.
   const input = {
-    username: "akdombrowski@gmail.com",
-    password: process.env.MY_SECRET_PASSWORD,
-    companyFilter: "Amazon",
+    departCity: "LAX",
+    arriveCity: "Tokyo",
+    cabinClass: "business",
   };
-  const username = input.username;
-  const password = input.password;
-  const companyFilter = input.companyFilter;
+  const departCity = input.username;
+  const arriveCity = input.password;
+  const cabinClass = input.cabinClass;
 
   const logRequest = (interceptedRequest) => {
     if (
@@ -129,16 +130,18 @@ Apify.main(async () => {
 
   try {
     let launchOptions = {
-      headless: true,
+      headless: false,
+      // executablePath: "/usr/bin/google-chrome-stable",
       devtools: true,
-      // slowMo: 000,
-      timeout: 60000,
+      slowMo: 1000,
+      timeout: 15000,
       dumpio: true,
       defaultViewport: null, //{ width: 1920, height: 1080 },
       args: [
         // "--window-size=1920,1080",
         // '--window-position=0,0',
         // "--start-maximized",
+        "--use-gl=egl",
         "--disable-gpu",
         "--disable-dev-shm-usage",
         "--disable-setuid-sandbox",
@@ -149,6 +152,7 @@ Apify.main(async () => {
         "--proxy-bypass-list=*",
         "--deterministic-fetch",
       ],
+      // ignoreDefaultArgs: ["--disable-extensions"],
     };
     let launchContext = {
       launchOptions: launchOptions,
@@ -157,7 +161,7 @@ Apify.main(async () => {
     log.debug("");
     log.debug("Launching Puppeteer...");
     log.debug("");
-    // console.log("Launching Puppeteer...");
+
     const browser = await Apify.launchPuppeteer(launchContext);
 
     try {
@@ -179,7 +183,7 @@ Apify.main(async () => {
         }),
         page.goto(url, { timeout: 60000 }),
       ]);
-      // log.debug("goToURL");
+      // log.debug("");
       // log.debug(goToURL);
       // log.debug("");
 
@@ -201,9 +205,9 @@ Apify.main(async () => {
       const whereTo = await whereToAncestor.$("input");
       const whereFrom = await whereFromAncestor.$("input");
 
-      // start typing Austin
+      // start typing departCty
       // you'll get a dropdown of suggestions
-      // click the austin, texas suggestion
+      // click the first suggestion
       log.debug("WHERE FROM");
       log.debug("Type in the traveling from location.");
       await whereFrom.focus();
@@ -216,17 +220,17 @@ Apify.main(async () => {
       await whereFrom.press("Backspace");
       await whereFrom.press("Backspace");
       log.debug("Typing in location.");
-      await whereFrom.type("Austin", { delay: 00 });
+      await whereFrom.type(departCity, { delay: 00 });
       log.debug("Waiting for the right suggestion in the dropdown list.");
 
-      let austinDropdownItem;
+      let firstDepartCitySuggestion;
       let t = 0;
-      while (!austinDropdownItem && t < 100) {
+      while (!firstDepartCitySuggestion && t < 100) {
         try {
-          austinDropdownItem = await page.waitForSelector(
-            'li[aria-label="Austin, Texas"]',
-            { visible: true, timeout: 5000 }
-          );
+          firstDepartCitySuggestion = await page.waitForSelector("li.n4HaVc", {
+            visible: true,
+            timeout: 5000,
+          });
         } catch (error) {
           log.debug("Trying again.");
           log.debug(
@@ -235,7 +239,7 @@ Apify.main(async () => {
           await whereTo.focus();
           await whereFrom.focus();
           await whereFrom.press("Backspace");
-          await whereFrom.type("Austin", { delay: 00 });
+          await whereFrom.type(departCity, { delay: 00 });
         } finally {
           t++;
         }
@@ -243,9 +247,9 @@ Apify.main(async () => {
 
       // click it!
       log.debug("Click on the suggestion");
-      austinDropdownItem
-        ? await austinDropdownItem.click()
-        : log.error("oops austin isn't in dropdown suggetions");
+      firstDepartCitySuggestion
+        ? await firstDepartCitySuggestion.click()
+        : log.error("oops not seeing suggestions");
       // await whereFrom.press("Enter");
       log.debug("");
 
@@ -256,15 +260,15 @@ Apify.main(async () => {
       log.debug("Focus on the 'where to' input field.");
       const clickBox = await whereTo.focus();
       log.debug("Typing in travel destination.");
-      await whereTo.type("Tokyo", { delay: 000 });
+      await whereTo.type(arriveCity, { delay: 000 });
       log.debug("Waiting for the right suggestion in the drop down list.");
-      const tokyoDropdownItem = await page.waitForSelector(
-        'li[aria-label="Tokyo, Japan"]',
+      const firstArriveCitySuggestion = await page.waitForSelector(
+        "li.n4HaVc.sMVRZe.pIWVuc",
         { visible: true, timeout: 60000 }
       );
       log.debug("Clicking suggestion.");
       log.debug("");
-      await tokyoDropdownItem.click();
+      await firstArriveCitySuggestion.click();
       // await whereTo.press("Enter");
 
       //
@@ -514,13 +518,9 @@ Apify.main(async () => {
           fullPage: true,
         });
         log.debug("saving image to data store.");
-        await Apify.setValue(
-          "resultsPageImage",
-          screenshot,
-          {
-            contentType: "image/png",
-          }
-        );
+        await Apify.setValue("resultsPageImage", screenshot, {
+          contentType: "image/png",
+        });
         log.debug("saved");
         log.debug("");
       } else {

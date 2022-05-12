@@ -4,7 +4,7 @@
   "description": "flights scraper",
   "main": "src/index.js",
   "scripts": {
-    "debug": "APIFY_LOG_LEVEL=DEBUG node src/index.js",
+    "bug": "APIFY_LOG_LEVEL=DEBUG node src/index.js",
     "start": "node src/index.js",
     "test": "npm run test"
   },
@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/akdombrowski/flights#readme",
   "dependencies": {
-    "apify": "^2.2.1",
-    "puppeteer": "^13.1.2"
+    "apify": "^2.3.2",
+    "puppeteer": "^14.0.0"
   }
 }
