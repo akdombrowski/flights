@@ -108,10 +108,14 @@ Apify.main(async () => {
     departCity: "LAX",
     arriveCity: "Tokyo",
     cabinClass: "business",
+    leaveDate: "Sep 1, 2022",
+    returnDate: "Sep 15, 2022",
   };
   const departCity = input.departCity;
   const arriveCity = input.arriveCity;
   const cabinClass = input.cabinClass;
+  const leaveDate = input.leaveDate;
+  const returnDate = input.returnDate;
 
   const logRequest = (interceptedRequest) => {
     if (
@@ -133,7 +137,7 @@ Apify.main(async () => {
       headless: false,
       // executablePath: "/usr/bin/google-chrome-stable",
       devtools: true,
-      slowMo: 1000,
+      slowMo: 500,
       timeout: 15000,
       dumpio: true,
       defaultViewport: null, //{ width: 1920, height: 1080 },
@@ -269,7 +273,60 @@ Apify.main(async () => {
       log.debug("Clicking suggestion.");
       log.debug("");
       await firstArriveCitySuggestion.click();
-      // await whereTo.press("Enter");
+
+      //
+      //
+      //
+      //  Date Input
+      //
+      //
+      //
+      //
+      //
+      //
+      //
+      //
+      log.debug("LEAVE DATE");
+      log.debug("Focus on 'leave date' input field.");
+      const departureInput = await page.$("input[placeholder=Departure");
+      await departureInput.focus();
+      log.debug("Typing in date.");
+      // await departureInput.type(leaveDate, { delay: 100 });
+      await departureInput.evaluate((node, leaveDate) => {
+        node.value = leaveDate;
+      }, leaveDate);
+      log.debug("Typed in departure date.");
+      log.debug("Hitting enter.");
+      await departureInput.press("Enter");
+      log.debug("Hit enter.");
+
+
+      log.debug("RETURN DATE");
+      log.debug("Focus on 'return date' input field.");
+      const returnInput = await page.$("input[placeholder=Return");
+      await returnInput.focus();
+      log.debug("Typing in date.");
+      // await departureInput.type(leaveDate, { delay: 100 });
+      await returnInput.evaluate((node, returnDate) => {
+        node.value = returnDate;
+      }, returnDate);
+      log.debug("Typed in return date.");
+      log.debug("Hitting enter.");
+      await returnInput.press("Enter");
+      log.debug("Hit enter.");
+
+      //
+      //
+      //
+      //  Cabin Class
+      //
+      //
+      //
+      //
+      //
+      //
+      //
+      //
 
       //
       // Screenshot
