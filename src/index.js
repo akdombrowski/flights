@@ -108,13 +108,13 @@ Apify.main(async () => {
     departCity: "LAX",
     arriveCity: "Tokyo",
     cabinClass: "business",
-    leaveDate: "Sep 1, 2022",
+    departureDate: "Sep 1, 2022",
     returnDate: "Sep 15, 2022",
   };
   const departCity = input.departCity;
   const arriveCity = input.arriveCity;
   const cabinClass = input.cabinClass;
-  const leaveDate = input.leaveDate;
+  const departureDate = input.departureDate;
   const returnDate = input.returnDate;
 
   const logRequest = (interceptedRequest) => {
@@ -286,16 +286,25 @@ Apify.main(async () => {
       //
       //
       //
-      log.debug("LEAVE DATE");
-      log.debug("Focus on 'leave date' input field.");
+      log.debug("DEPARTURE DATE");
+      log.debug("Focus on 'departure date' input field.");
       const departureInput = await page.$("input[placeholder=Departure");
       await departureInput.focus();
       log.debug("Typing in date.");
-      // await departureInput.type(leaveDate, { delay: 100 });
-      await departureInput.evaluate((node, leaveDate) => {
-        node.value = leaveDate;
-      }, leaveDate);
+      // await departureInput.type(departureDate, { delay: 100 });
+      await departureInput.evaluate((node, departureDate) => {
+        node.value = departureDate;
+      }, departureDate);
       log.debug("Typed in departure date.");
+      const depDate = await departureInput.evaluate((node) => node.value);
+      log.debug("");
+      log.debug("");
+      log.debug("");
+      log.debug("depDate");
+      log.debug(depDate);
+      log.debug("");
+      log.debug("");
+      log.debug("");
       log.debug("Hitting enter.");
       await departureInput.press("Enter");
       log.debug("Hit enter.");
@@ -305,7 +314,7 @@ Apify.main(async () => {
       const returnInput = await page.$("input[placeholder=Return");
       await returnInput.focus();
       log.debug("Typing in date.");
-      // await departureInput.type(leaveDate, { delay: 100 });
+      // await departureInput.type(departureDate, { delay: 100 });
       await returnInput.evaluate((node, returnDate) => {
         node.value = returnDate;
       }, returnDate);
@@ -569,6 +578,19 @@ Apify.main(async () => {
           log.debug("");
           log.debug("");
           break;
+        }
+
+        // check for the covid info row
+        const covidInfo = await f.evaluate((node) => node.innerText);
+
+        if (covidInfo.includes("advisory")) {
+          log.debug("Travel Advisory row. Skipping...");
+          log.debug("");
+          continue;
+        } else if (covidInfo.includes("COVID")) {
+          log.debug("COVID advisory row. Skipping...");
+          log.debug("");
+          continue;
         }
 
         log.debug("");
