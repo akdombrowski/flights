@@ -137,7 +137,7 @@ Apify.main(async () => {
       headless: false,
       // executablePath: "/usr/bin/google-chrome-stable",
       devtools: true,
-      slowMo: 500,
+      slowMo: 00,
       timeout: 15000,
       dumpio: true,
       defaultViewport: null, //{ width: 1920, height: 1080 },
@@ -300,7 +300,6 @@ Apify.main(async () => {
       await departureInput.press("Enter");
       log.debug("Hit enter.");
 
-
       log.debug("RETURN DATE");
       log.debug("Focus on 'return date' input field.");
       const returnInput = await page.$("input[placeholder=Return");
@@ -425,18 +424,23 @@ Apify.main(async () => {
       log.debug("");
       log.debug("Scraping prices...");
       log.debug("attempting to scroll through all results");
-      await page.waitForSelector("[role=listitem] .zISZ5c.QB2Jof .bEfgkb", {
+      await page.waitForSelector("[role=listitem] .zISZ5c.QB2Jof", {
         visible: true,
         timeout: 30000,
       });
-      log.debug("waiting for the 'more' button's icon to load");
-      await page.waitForSelector("[role=listitem] .zISZ5c.QB2Jof svg");
+      log.debug("waiting for the 'more' button to load");
+      await page.waitForSelector("[role=listitem] .zISZ5c.QB2Jof button");
       log.debug("finished loading");
 
       let theMoreBtn = await page.$("[role=listitem] .zISZ5c.QB2Jof");
       if (theMoreBtn !== null) {
         // O.O  a button
+        log.debug("");
+        log.debug("");
+        log.debug("");
         log.debug("the more button was found");
+        log.debug("");
+        log.debug("");
         log.debug("");
         // let's click it!
         let theMoreBtnSpan = await theMoreBtn.$(".bEfgkb");
@@ -445,7 +449,6 @@ Apify.main(async () => {
         );
         log.debug("theMoreBtnSpanText");
         log.debug(theMoreBtnSpanText);
-        log.debug(typeof theMoreBtnSpanText);
         log.debug("");
 
         let showMeMore = !theMoreBtnSpanText
@@ -456,33 +459,45 @@ Apify.main(async () => {
         while (showMeMore && i < 1000) {
           log.debug('trying to click "more" button');
           // let botton = await theMoreBtn.evaluateHandle((btn) => btn.click());
-          await page.click("[role=listitem] .zISZ5c.QB2Jof");
+          await page.click("[role=listitem] .zISZ5c.QB2Jof button");
           log.debug("clicked");
           log.debug("");
           await Apify.utils.sleep(1000);
 
           theMoreBtn = await page.$("[role=listitem] .zISZ5c.QB2Jof");
-          theMoreBtnSpan = await theMoreBtn.$(".bEfgkb");
-          log.debug("theMoreBtnSpan");
-          log.debug(theMoreBtnSpan);
+          theMoreBtnSpan = await theMoreBtn.$("span");
+          const theMoreBtnSpanProps = await theMoreBtnSpan.getProperties();
+          log.debug("theMoreBtnSpanProps");
+          log.debug([...theMoreBtnSpanProps.entries()]);
+          log.debug("");
+          // "==" because theMoreBtnSpan could be null or undefined
           theMoreBtnSpanText =
             theMoreBtnSpan == null
               ? null
               : await theMoreBtnSpan.evaluate((span) => span.innerText);
+          log.debug("theMoreBtnSpanText");
+          log.debug(theMoreBtnSpanText);
+          log.debug("");
+
+          // "==" because showMeMore could be null or undefined
           showMeMore =
             theMoreBtnSpanText == null
               ? false
               : theMoreBtnSpanText.includes("more");
 
-          log.debug("theMoreBtnSpanText");
-          log.debug(theMoreBtnSpanText);
           log.debug("showMeMore");
           log.debug(showMeMore);
+          log.debug("");
+          log.debug("");
           log.debug("");
           i++;
         }
       }
 
+      // Create array of each row in results
+      log.debug("");
+      log.debug("Creating array of result rows");
+      log.debug("");
       const roleListItems = await page.$$("[role=listitem]");
       // await roleListItems.$eval(".zISZ5c.QB2Jof", (node) => node.click());
       // await Apify.utils.puppeteer.infiniteScroll(page, {
@@ -492,20 +507,57 @@ Apify.main(async () => {
       //   buttonSelector: "[role=listitem] .zISZ5c.QB2Jof",
       // });
 
+      // loop through each row and extract data
+      // until we get to the last row
+      log.debug("Iterating over results");
+      // array for extracted data
       let flights = new Array();
+      // count for notifying which result we're currently looking at
+      let count = 1;
+      // total number of results (including the more/hide row)
+      // subtract 1 for the bottom row (hide/more)
+      const totalResults = roleListItems.length - 1;
+      if (!totalResults || totalResults < 0) {
+        throw new Exception("Didn't find any results");
+      }
       for (let f of roleListItems) {
+        // check if we're at last row by looking for
+        // the <span> element with text indicating if there's
+        // more to show or to hide the extras
+        // only the bottom row has this class
         let bottomRowSpan = await f.$(".bEfgkb");
+        const c = f.asElement();
+        const d = await c.getProperty("data-expandedlabel");
+        log.debug('f.$eval("div", (node) => node.data-expandedlabel)');
+        log.debug(d);
+        log.debug("");
+        log.debug("");
+        log.debug("");
+        // console.log("bottomRowSpan");
+        // console.log(bottomRowSpan);
+        // console.log("");
+        // console.log("");
+        // console.log("");
+
+        // just checking the text of the span for whether
+        // we've expanded all the results or not
+        // either way, we'll want to break out of the loop
+        // because we're either done extracting data or we
+        // messed up earlier and didn't expand all results
+        // "==" because innerTxt could be null or undefined
         let innerTxt =
           bottomRowSpan == null
             ? ""
             : await bottomRowSpan.evaluate((node) => node.innerText);
-
+        log.debug("innerTxt");
+        log.debug(innerTxt);
+        log.debug("");
         if (innerTxt.includes("more")) {
           log.debug(
             "Uh oh. Found more button. Need to expand to see all results."
           );
           log.debug("");
-          continue;
+          break;
         } else if (innerTxt.includes("Hide")) {
           log.debug("");
           log.debug("");
@@ -516,22 +568,44 @@ Apify.main(async () => {
           log.debug("");
           log.debug("");
           log.debug("");
-          continue;
+          break;
         }
 
+        log.debug("");
+        log.debug("");
+        log.debug("");
+        log.debug("We passed the bottom row check.");
+        log.debug("");
+        log.debug("");
+        log.debug("");
+
+        log.debug("");
+        log.debug("Extracting Data from row #" + count + " / " + totalResults);
+        log.debug("");
+
+        // we're not at the bottom row
+        // extract data
+        // this is the object that'll contain all the data
         const data = new Object();
 
         // tip for future, they use .YMlIz.FpEdX.jLMuyc when
         // it's a better than typical fare, ie, when the
         // price shows in green in the UI
+        //
+        // grab price
+        log.debug("");
+        log.debug("Extracting Price");
+        log.debug("");
         const price = await f.$eval(
-          ".YMlIz.FpEdX > span",
+          ".BVAVmf.I11szd.POX3ye > div > span[role=text]",
           (node) => node.innerText
         );
         data.price = price;
 
-        // const airline = await flight.$$(
-        //   ".TQqf0e.sSHqwe.tPgKwe.ogfYpf > span");
+        // grab airline name
+        log.debug("");
+        log.debug("Extracting Airline");
+        log.debug("");
         const airline = await f.$$eval(
           ".TQqf0e.sSHqwe.tPgKwe.ogfYpf span",
           (nodes) =>
@@ -549,6 +623,10 @@ Apify.main(async () => {
         log.debug(airlineName);
         data.airline = airlineName;
 
+        // grab departure and return flight times
+        log.debug("");
+        log.debug("Extracting Departure and Return Times");
+        log.debug("");
         const times = await f.$$eval(
           ".zxVSec.YMlIz.tPgKwe.ogfYpf > .mv1WYe [role=text]",
           (nodes) => nodes.map((node) => node.innerText)
@@ -558,8 +636,14 @@ Apify.main(async () => {
         data.departureTime = times[0];
         data.arrivalTime = times[1];
 
+        log.debug("");
+        log.debug("Data extracted: ");
         log.debug(JSON.stringify(data));
+        log.debug("");
         flights.push(data);
+
+        // increment counter
+        count++;
       }
 
       log.debug("");
@@ -586,16 +670,22 @@ Apify.main(async () => {
           path: "./screenshots/aus-tokyo-results-" + dateFileAppend + ".png",
           fullPage: true,
         });
+        log.debug("saved");
+        log.debug("");
       }
-      log.debug("flightInfos");
-      for (let f of flights) {
-        log.debug(JSON.stringify(f));
-      }
+
+      // log.debug("flightInfos");
+      // for (let f of flights) {
+      //   log.debug(JSON.stringify(f));
+      // }
+
       // Write flights to datastore
       // // Save a named dataset to a variable
       // const flightPricesDataset = await Apify.openDataset(
       //   "aus-tokyo-flight-prices-" + dateFileAppend
       // );
+      log.debug("");
+      log.debug("Push data to Apify storage");
       await Apify.pushData(flights);
       log.debug("");
       log.debug("");
