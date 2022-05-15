@@ -582,14 +582,22 @@ Apify.main(async () => {
 
         // check for the covid info row
         const covidInfo = await f.evaluate((node) => node.innerText);
-
+        log.debug("covidInfo");
+        log.debug(covidInfo);
+        log.debug("");
         if (covidInfo.includes("advisory")) {
           log.debug("Travel Advisory row. Skipping...");
           log.debug("");
+
+          // increment counter
+          count++;
           continue;
         } else if (covidInfo.includes("COVID")) {
           log.debug("COVID advisory row. Skipping...");
           log.debug("");
+
+          // increment counter
+          count++;
           continue;
         }
 
@@ -609,6 +617,26 @@ Apify.main(async () => {
         // extract data
         // this is the object that'll contain all the data
         const data = new Object();
+
+        // set departure date
+        const depaDate = await page.$eval(
+          "input[placeholder=Departure]",
+          (node) => node.value
+        );
+        data.departureDate = depaDate;
+        log.debug("departureDate");
+        log.debug(depaDate);
+        log.debug("");
+
+        // set return date
+        const retuDate = await page.$eval(
+          "input[placeholder=Return]",
+          (node) => node.value
+        );
+        data.returnDate = retuDate;
+        log.debug("returnDate");
+        log.debug(retuDate);
+        log.debug("");
 
         // tip for future, they use .YMlIz.FpEdX.jLMuyc when
         // it's a better than typical fare, ie, when the
