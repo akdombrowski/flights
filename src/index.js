@@ -107,9 +107,9 @@ Apify.main(async () => {
   const input = {
     departCity: "LAX",
     arriveCity: "Tokyo",
-    cabinClass: "business",
-    departureDate: "Sep 1, 2022",
-    returnDate: "Sep 15, 2022",
+    cabinClass: "economy",
+    departureDate: "Dec 4, 2023",
+    returnDate: "Dec 20, 2023",
   };
   const departCity = input.departCity;
   const arriveCity = input.arriveCity;
