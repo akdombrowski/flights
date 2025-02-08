@@ -2,11 +2,12 @@
   "name": "flights",
   "version": "0.0.1",
   "description": "flights scraper",
-  "main": "src/index.js",
+  "main": "src/crawl.js",
   "scripts": {
-    "bug": "APIFY_LOG_LEVEL=DEBUG node src/index.js",
-    "start": "node src/index.js",
-    "test": "npm run test"
+    "start": "npm run start:dev",
+    "start:prod": "node dist/main.js",
+    "start:dev": "tsx src/main.ts",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -28,8 +29,33 @@
     "url": "https://github.com/akdombrowski/flights/issues"
   },
   "homepage": "https://github.com/akdombrowski/flights#readme",
+  "type": "module",
   "dependencies": {
-    "apify": "^2.3.2",
-    "puppeteer": "^14.0.0"
-  }
+    "@crawlee/linkedom": "^3.12.2",
+    "@crawlee/utils": "^3.12.2",
+    "apify": "^3.3.0",
+    "cheerio": "^1.0.0",
+    "crawlee": "^3.12.2",
+    "got-scraping": "^4.0.8",
+    "puppeteer": "^24.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "apify-cli": "^0.21.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "packageExtensions": {
+    "@crawlee/linkedom@*": {
+      "dependencies": [
+        {
+          "@crawlee/utils": "*"
+        },
+        {
+          "cheerio": "*"
+        }
+      ]
+    }
+  },
+  "packageManager": "yarn@4.6.0"
 }

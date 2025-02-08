@@ -1,0 +1,6 @@
+{
+	"actorSpecification": 1,
+	"environmentVariables": {
+		"npm_config_loglevel": "silent"
+	}
+}
